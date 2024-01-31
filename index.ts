@@ -8,6 +8,7 @@ import { Server as SocketIOServer } from 'socket.io';
 const { Spot } = require('@binance/connector');
 
 const app = express();
+app.use(express.json());
 const server = createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
@@ -52,37 +53,29 @@ app.get('/balance', async (req: Request, res: Response) => {
     }
 });
 
-app.post('/buy-bitcoin', async (req: Request, res: Response) => {
+app.post('/buy', async (req: Request, res: Response) => {
+    console.log(req.body);
+    const coin = req.body.coin.toUpperCase();
+    const quantity = req.body.quantity;
+
     try {
-        const response = await client.newOrder('BTCUSDT', 'BUY', 'MARKET', { quantity: 0.5 });
+        const response = await client.newOrder(`${coin}USDT`, 'BUY', 'MARKET', { quantity: quantity });
         res.json(response.data);
-        io.emit('bitcoin purchase', response.data);
+        io.emit('coin purchase', response.data);
     } catch (error) {
         // ... error handling ...
     }
 });
 
-app.post('/buy-ethereum', async (req: Request, res: Response) => {
-    try {
-        const response = await client.newOrder('ETHUSDT', 'BUY', 'MARKET', { quantity: 0.5 });
-        res.json(response.data);
-        io.emit('ethereum purchase', response.data);
-    } catch (error) {
-        // ... error handling ...
-    }
-});
-
-app.post('/sell/:coin', async (req: Request, res: Response) => {
-    const coin = req.params.coin.toUpperCase();
-    
-    if (!['BTC', 'ETH'].includes(coin)) {
-        return res.status(400).json({ error: 'Unsupported coin' });
-    }
+app.post('/sell', async (req: Request, res: Response) => {
+    console.log(req.body);
+    const coin = req.body.coin.toUpperCase();
+    const quantity = req.body.quantity;
     
     try {
-        const response = await client.newOrder(`${coin}USDT`, 'SELL', 'MARKET', { quantity: 0.5 });
+        const response = await client.newOrder(`${coin}USDT`, 'SELL', 'MARKET', { quantity: quantity});
         res.json(response.data);
-        io.emit('coin sale', response.data); // Emit coin sale update
+        io.emit('coin sale', response.data);
     } catch (error) {
         // ... error handling ...
     }
