@@ -12,7 +12,7 @@ app.use(express.json());
 const server = createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: "*" // Adjust this for production
+    origin: "*" 
   }
 });
 
@@ -60,8 +60,14 @@ app.post('/buy', async (req: Request, res: Response) => {
 
     try {
         const response = await client.newOrder(`${coin}USDT`, 'BUY', 'MARKET', { quantity: quantity });
+        const totalCostUSD = response.data.fills.reduce((acc: number, fill: any) => acc + parseFloat(fill.price) * parseFloat(fill.qty), 0);
+        const transactionData = {
+            coin: coin,
+            amountInUSD: totalCostUSD,
+            quantity: quantity
+        };
         res.json(response.data);
-        io.emit('coin purchase', response.data);
+        io.emit('coin purchase', transactionData);
     } catch (error) {
         // ... error handling ...
     }
@@ -71,11 +77,17 @@ app.post('/sell', async (req: Request, res: Response) => {
     console.log(req.body);
     const coin = req.body.coin.toUpperCase();
     const quantity = req.body.quantity;
-    
+
     try {
-        const response = await client.newOrder(`${coin}USDT`, 'SELL', 'MARKET', { quantity: quantity});
+        const response = await client.newOrder(`${coin}USDT`, 'SELL', 'MARKET', { quantity: quantity });
+        const totalCostUSD = response.data.fills.reduce((acc: number, fill: any) => acc + parseFloat(fill.price) * parseFloat(fill.qty), 0);
+        const transactionData = {
+            coin: coin,
+            amountInUSD: totalCostUSD,
+            quantity: quantity
+        };
         res.json(response.data);
-        io.emit('coin sale', response.data);
+        io.emit('coin sale', transactionData);
     } catch (error) {
         // ... error handling ...
     }
