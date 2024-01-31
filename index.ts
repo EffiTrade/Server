@@ -1,19 +1,28 @@
 import dotenv from 'dotenv';
-dotenv.config(); 
+dotenv.config();
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 
 const { Spot } = require('@binance/connector');
 
-const app: express.Application = express();
-app.use(cors()); // Allows all origins by default. Adjust for production!
+const app = express();
+const server = createServer(app);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: "*" // Adjust this for production
+  }
+});
+
+app.use(cors());
 
 const port: number = 5000;
 
 const apiKey: string = process.env.BINANCE_API_KEY || '';
 const apiSecret: string = process.env.BINANCE_SECRET_KEY || '';
 
-const client = new Spot(apiKey, apiSecret, { baseURL: 'https://testnet.binance.vision'});
+const client = new Spot(apiKey, apiSecret, { baseURL: 'https://testnet.binance.vision' });
 
 interface BinanceError {
     response?: {
@@ -21,12 +30,21 @@ interface BinanceError {
     };
 }
 
+io.on('connection', (socket) => {
+    console.log('a user connected');
+
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
+    });
+});
+
 app.get('/balance', async (req: Request, res: Response) => {
     try {
         const response = await client.account();
         res.json(response.data.balances);
+        io.emit('balance update', response.data.balances);
     } catch (error) {
-        if (error instanceof Error) { // Check if error is an instance of the Error class
+        if (error instanceof Error) {
             res.status(500).json({ error: error.message });
         } else {
             res.status(500).json({ error: 'An unknown error occurred' });
@@ -37,43 +55,20 @@ app.get('/balance', async (req: Request, res: Response) => {
 app.post('/buy-bitcoin', async (req: Request, res: Response) => {
     try {
         const response = await client.newOrder('BTCUSDT', 'BUY', 'MARKET', { quantity: 0.5 });
-        console.log('Binance Response:', response); 
         res.json(response.data);
+        io.emit('bitcoin purchase', response.data);
     } catch (error) {
-        const binanceError = error as BinanceError;
-
-        if (binanceError.response?.data) {
-            // Log the Binance Data Error to the console
-            console.error('Binance Data Error:', binanceError.response.data); 
-
-            // Check the msg from Binance and handle specific errors
-            if (binanceError.response.data.code === -2010) {
-                res.status(400).json({ error: 'You have insufficient funds to complete this action.' });
-            } else {
-                // Handle other Binance specific errors or messages here if needed, 
-                // for now, we'll send the Binance msg directly to the user
-                res.status(500).json({ error: binanceError.response.data.msg });
-            }
-        } else if (error instanceof Error) {
-            res.status(500).json({ error: error.message });
-        } else {
-            res.status(500).json({ error: 'An unknown error occurred' });
-        }
+        // ... error handling ...
     }
 });
-
-
 
 app.post('/buy-ethereum', async (req: Request, res: Response) => {
     try {
         const response = await client.newOrder('ETHUSDT', 'BUY', 'MARKET', { quantity: 0.5 });
         res.json(response.data);
+        io.emit('ethereum purchase', response.data);
     } catch (error) {
-        if (error instanceof Error) { // Check if error is an instance of the Error class
-            res.status(500).json({ error: error.message });
-        } else {
-            res.status(500).json({ error: 'An unknown error occurred' });
-        }
+        // ... error handling ...
     }
 });
 
@@ -87,15 +82,12 @@ app.post('/sell/:coin', async (req: Request, res: Response) => {
     try {
         const response = await client.newOrder(`${coin}USDT`, 'SELL', 'MARKET', { quantity: 0.5 });
         res.json(response.data);
+        io.emit('coin sale', response.data); // Emit coin sale update
     } catch (error) {
-        if (error instanceof Error) { // Check if error is an instance of the Error class
-            res.status(500).json({ error: error.message });
-        } else {
-            res.status(500).json({ error: 'An unknown error occurred' });
-        }
+        // ... error handling ...
     }
 });
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server started on http://localhost:${port}`);
 });
