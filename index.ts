@@ -1,5 +1,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
+
+import './db';
+
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
