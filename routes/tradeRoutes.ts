@@ -1,9 +1,9 @@
 import express from 'express';
-import { buyCoin, sellCoin } from '../controllers/tradeController';
+import { buyAsset, sellAsset } from '../controllers/tradeController';
 
 const router = express.Router();
 
-router.post('/buy', buyCoin);
-router.post('/sell', sellCoin);
+router.post('/buy', buyAsset);
+router.post('/sell', sellAsset);
 
 export default router;
