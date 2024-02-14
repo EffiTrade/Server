@@ -14,7 +14,9 @@ export const buyCoin = async (req: Request, res: Response) => {
         emitCoinPurchase(transactionData);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ error: 'An error occurred during the purchase' });
+        const axiosError = error as { response?: { data?: { msg: string } } };
+        const errorMessage = axiosError.response?.data?.msg || 'An error occurred during the transaction';
+        res.status(400).json({ error: errorMessage });
     }
 };
 
@@ -30,6 +32,8 @@ export const sellCoin = async (req: Request, res: Response) => {
         emitCoinSale(transactionData);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ error: 'An error occurred during the sale' });
+        const axiosError = error as { response?: { data?: { msg: string } } };
+        const errorMessage = axiosError.response?.data?.msg || 'An error occurred during the transaction';
+        res.status(400).json({ error: errorMessage });
     }
 };
