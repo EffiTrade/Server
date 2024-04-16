@@ -28,3 +28,21 @@ app.use('/api', tradeRoutes);
 
 const port: number = parseInt(process.env.PORT || '5000');
 server.listen(port, () => console.log(`Server started on http://localhost:${port}`));
+
+// Display available endpoints on the server's root url
+const endpoints = [
+    { method: "GET", path: "/api/balance", description: "Get account balance" },
+    { method: "POST", path: "/api/order", description: "Create a new order" },
+    { method: "DELETE", path: "/api/order/:id", description: "Cancel an order" },
+];
+
+app.get('/', (req, res) => {
+    const html = `
+        <h1>EffiTrade Server</h1>
+        <h2>Available API Endpoints</h2>
+        <ul>
+            ${endpoints.map(endpoint => `<li><strong>${endpoint.method}</strong> ${endpoint.path} - ${endpoint.description}</li>`).join('')}
+        </ul>
+    `;
+    res.send(html);
+});
