@@ -1,20 +1,16 @@
-import axios from 'axios';
+import { client } from './binanceService';
 
-export async function getHistoricalPrices(symbol: string, interval: string, limit: number) {
-    const apiKey = process.env.BINANCE_API_KEY;
-    const url = `https://testnet.binance.vision/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
-
+export async function getHistoricalPrices(symbol: string, interval: string, limit: number): Promise<number[]> {
     try {
-        const response = await axios.get(url, {
-            headers: { 'X-MBX-APIKEY': apiKey }
-        });
+        const response = await client.klines(symbol, interval, { limit: limit });
         console.log(response.data);
-        return response.data.map((kline: any) => parseFloat(kline[4]));
-    } catch (error) {
-        console.error('Error fetching klines:', error);
+        if (Array.isArray(response.data)) {
+            return response.data.map((kline: (string | number)[]) => parseFloat(kline[4] as string));
+        } else {
+            throw new Error('Unexpected response data structure');
+        }
+    } catch (error: any) {
+        console.error('Error fetching klines:', error.message);
         throw error;
     }
 }
-
-getHistoricalPrices('BTCUSDT', '1h', 500);
-

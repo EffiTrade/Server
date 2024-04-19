@@ -18,11 +18,11 @@ export const executeRSIStrategy = async (baseAsset: string, quoteAsset: string, 
     try {
         if (currentRSI < rsiThresholds.oversold) {
             console.log(`RSI is low (${currentRSI}). Buying ${symbol}`);
-            const { totalCostQuote, data } = await buy(baseAsset, quoteAsset, 1); 
+            const { totalCostQuote, data } = await buy(baseAsset, quoteAsset, 0.01); 
             console.log(`Bought ${symbol} for ${totalCostQuote}`, data);
         } else if (currentRSI > rsiThresholds.overbought) {
             console.log(`RSI is high (${currentRSI}). Selling ${symbol}`);
-            const { totalCostQuote, data } = await sell(baseAsset, quoteAsset, 1);
+            const { totalCostQuote, data } = await sell(baseAsset, quoteAsset, 0.01);
             console.log(`Sold ${symbol} for ${totalCostQuote}`, data);
         } else {
             console.log(`RSI is ${currentRSI}, no action taken.`);
