@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { buy, sell } from '../services/binanceService';
-import { emitAssetPurchase, emitAssetSale } from '../socketUtils';
+import { emitAssetPurchase, emitAssetSale } from '../utils/socketUtils';
 
 export const buyAsset = async (req: Request, res: Response): Promise<void> => {
     const { baseAsset, quoteAsset, quantity } = req.body;

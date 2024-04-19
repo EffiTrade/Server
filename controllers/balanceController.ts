@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { getAccountBalance } from '../services/binanceService';
-import { emitBalanceUpdate } from '../socketUtils';
+import { emitBalanceUpdate } from '../utils/socketUtils';
 
 export const getBalance = async (req: Request, res: Response) => {
     try {
