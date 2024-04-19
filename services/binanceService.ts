@@ -22,7 +22,7 @@ export const buy = async (baseAsset: string, quoteAsset: string, quantity: numbe
         const totalCostQuote: number = parseFloat(response.data.cummulativeQuoteQty);
 
         const { fills, ...logResponse } = response.data;
-        console.log("\nTransaction details:", logResponse);
+        console.log(`\nBought ${quantity} ${baseAsset} for ${totalCostQuote} ${quoteAsset}:`, logResponse);
 
         return { totalCostQuote, data: response.data };
     } catch (error) {
@@ -38,8 +38,7 @@ export const sell = async (baseAsset: string, quoteAsset: string, quantity: numb
         const totalCostQuote: number = parseFloat(response.data.cummulativeQuoteQty);
 
         const { fills, ...logResponse } = response.data;
-        console.log("\nTransaction details:", logResponse);
-
+        console.log(`\nSold ${quantity} ${baseAsset} for ${totalCostQuote} ${quoteAsset}:`, logResponse);
         return { totalCostQuote, data: response.data };
     } catch (error) {
         console.error(`Error selling ${symbol}:`, error);
