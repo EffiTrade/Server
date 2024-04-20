@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import './db'; // Connect to MongoDB
+import './db'; 
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
@@ -9,7 +9,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { setSocketServerInstance } from './utils/socketUtils';
 import balanceRoutes from './routes/balanceRoutes';
 import tradeRoutes from './routes/tradeRoutes';
-import './services/scheduler';
+import strategyRoutes from './routes/strategyRoutes';
 
 const app = express();
 app.use(express.json());
@@ -20,21 +20,21 @@ app.use(cors({
 const server = createServer(app);
 const io = new SocketIOServer(server, { cors: { origin: process.env.CORS_ORIGIN }});
 
-// Set the Socket.IO server instance on the app
 setSocketServerInstance(io);
 
-// Setup routes
 app.use('/api', balanceRoutes);
 app.use('/api', tradeRoutes);
+app.use('/api', strategyRoutes);
 
 const port: number = parseInt(process.env.PORT || '5000');
 server.listen(port, () => console.log(`Server started on http://localhost:${port}`));
 
-// Display available endpoints on the server's root url
 const endpoints = [
     { method: "GET", path: "/api/balance", description: "Get account balance" },
     { method: "POST", path: "/api/order", description: "Create a new order" },
     { method: "DELETE", path: "/api/order/:id", description: "Cancel an order" },
+    { method: "POST", path: "/api/strategy", description: "Set or update a trading strategy" },
+    { method: "POST", path: "/api/strategy/:baseAsset/execute", description: "Execute a trading strategy" }
 ];
 
 app.get('/', (req, res) => {

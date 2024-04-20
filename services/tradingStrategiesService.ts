@@ -59,21 +59,24 @@ export const executeCustomStrategy = async (config: StrategyConfig) => {
 
     for (const indicatorConfig of config.indicators) {
         const results = calculateIndicator(indicatorConfig, prices);
-        const lastResult = results[results.length - 1] as number;  // Cast lastResult as number
-        console.log(`\n${indicatorConfig.name} Result: ${lastResult.toFixed(2)}`);
-        console.log(`Upper threshold: ${indicatorConfig.thresholds?.upper}, Lower threshold: ${indicatorConfig.thresholds?.lower}`);
+        const lastResult = results[results.length - 1];
 
+        if (lastResult !== undefined) {
+            console.log(`\n${indicatorConfig.name} Result: ${lastResult.toFixed(2)}`);
+            if (indicatorConfig.thresholds) {
+                console.log(`Upper threshold: ${indicatorConfig.thresholds.upper}, Lower threshold: ${indicatorConfig.thresholds.lower}`);
 
-        if (indicatorConfig.thresholds && lastResult !== undefined) {
-            if (indicatorConfig.thresholds.upper !== undefined && lastResult > indicatorConfig.thresholds.upper) {
-                buyVotes++;
-                console.log(`BUY vote from ${indicatorConfig.name}`);
-            } else if (indicatorConfig.thresholds.lower !== undefined && lastResult < indicatorConfig.thresholds.lower) {
-                sellVotes++;
-                console.log(`SELL vote from ${indicatorConfig.name}`);
-            }
-            else {
-                console.log(`No vote from ${indicatorConfig.name}`);
+                if (indicatorConfig.thresholds.upper !== undefined && lastResult > indicatorConfig.thresholds.upper) {
+                    buyVotes++;
+                    console.log(`BUY vote from ${indicatorConfig.name}`);
+                } else if (indicatorConfig.thresholds.lower !== undefined && lastResult < indicatorConfig.thresholds.lower) {
+                    sellVotes++;
+                    console.log(`SELL vote from ${indicatorConfig.name}`);
+                } else {
+                    console.log(`No vote from ${indicatorConfig.name} due to value within threshold bounds`);
+                }
+            } else {
+                console.log(`No thresholds set for ${indicatorConfig.name}, skipping vote.`);
             }
         }
     }
@@ -89,6 +92,8 @@ export const executeCustomStrategy = async (config: StrategyConfig) => {
         console.log(`\nNo consensus reached: ${buyVotes} buys, ${sellVotes} sells, and ${config.indicators.length - buyVotes - sellVotes} abstained`);
     }
 };
+
+
 
 async function executeTrade(action: 'buy' | 'sell', config: StrategyConfig, symbol: string) {
     const tradeResult = action === 'buy' ? await buy(config.baseAsset, config.quoteAsset, config.quantity) :
